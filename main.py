@@ -1,12 +1,16 @@
 import pandas as pd
+from constants import TEAM_MAP
+
+def get_mapped(team):
+    return TEAM_MAP[team]
 
 
-def cleanup(input_file: str):
+def get_primordial_genome(input_file: str) -> str:
+    """Builds the primordial genome from the available hall space
+      and the number of times the teams practice"""
     # Load the files/dataframes
     hall_space: pd.DataFrame = pd.read_excel(input_file, sheet_name=0).set_index("Day")
-    time_slots: pd.DataFrame = pd.read_excel(input_file, sheet_name=1).set_index("Slot")
     teams: pd.DataFrame = pd.read_excel(input_file, sheet_name=2).set_index("Name")
-    users: pd.DataFrame = pd.read_excel(input_file, sheet_name=3).set_index("Name")
 
     # Check if hall space is used efficiently
     total_hall_space: int = hall_space.sum().sum()
@@ -21,9 +25,21 @@ def cleanup(input_file: str):
     rotational_teams: pd.DataFrame = teams[teams["N practices"] * 2 % 2 == 1]
     rotational_teams_count: pd.Series = rotational_teams.groupby("N practices")["N practices"].count()
     num_rotational_slots: int = int(rotational_teams_count.sum() / 2)
-    print(num_rotational_slots)
+
+    # TODO fix the lower case letters, indicating 2 hour practices
+    primordial_genome: str = (teams["N practices"].astype(int) * teams.index.map(TEAM_MAP)).sum() + num_rotational_slots * TEAM_MAP["Rot"]
+    print(int(2.5))
+
+
+
+def cleanup(input_file: str):
+    # Load the files/dataframes
+    hall_space: pd.DataFrame = pd.read_excel(input_file, sheet_name=0).set_index("Day")
+    time_slots: pd.DataFrame = pd.read_excel(input_file, sheet_name=1).set_index("Slot")
+    teams: pd.DataFrame = pd.read_excel(input_file, sheet_name=2).set_index("Name")
+    users: pd.DataFrame = pd.read_excel(input_file, sheet_name=3).set_index("Name")
 
 
 
 filename = "input_files/input.xlsx"
-cleanup(filename)
+get_primordial_genome(filename)
