@@ -26,9 +26,19 @@ def get_primordial_genome(input_file: str) -> str:
     rotational_teams_count: pd.Series = rotational_teams.groupby("N practices")["N practices"].count()
     num_rotational_slots: int = int(rotational_teams_count.sum() / 2)
 
+    rotational_longer_teams = teams.loc[rotational_teams.index][(teams["N longer"] != 0)]
     # TODO fix the lower case letters, indicating 2 hour practices
-    primordial_genome: str = (teams["N practices"].astype(int) * teams.index.map(TEAM_MAP)).sum() + num_rotational_slots * TEAM_MAP["Rot"]
-    print(int(2.5))
+    primordial_genome_regular: str = ((teams["N practices"].astype(int)-teams["N longer"].astype(int)) * teams.index.map(TEAM_MAP)).sum() 
+    primordial_genome_longer: str = ((teams["N longer"].astype(int)) * teams.index.map(TEAM_MAP).astype(str)).sum().lower()
+    primordial_genome_rotation: str = (num_rotational_slots - rotational_longer_teams["N longer"].sum().astype(int)) * TEAM_MAP["Rot"]
+    primordial_genome_rotation_longer: str = rotational_longer_teams["N longer"].sum().astype(int) * TEAM_MAP["Rot"].lower()
+
+    primordial_genome: str = "".join(sorted(primordial_genome_regular + primordial_genome_longer + primordial_genome_rotation + primordial_genome_rotation_longer, key=lambda L: (L.lower(), L)))
+    print(primordial_genome)
+
+    # Change primordial genome to account for longer practices
+    teams_longer_practice: pd.DataFrame = teams[teams["N longer"] != 0]
+    # print(teams_longer_practice)
 
 
 
