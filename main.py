@@ -80,9 +80,25 @@ class Hall_Scheduler:
         )
         return primordial_genome
 
-    def genome_to_schedule(genome: str):
-        pass
+    def genome_to_schedule(self, genome: str):
+        available_courts = self.hall_space.max().max()
+        courts = [f"Court {court + 1}" for court in range(available_courts)]
+        df_day: pd.DataFrame = self.time_slots.merge(
+                        self.hall_space,
+                        left_on=self.time_slots.index,
+                        right_on=self.hall_space.index,
+                    )
+        daily_dfs: list[pd.DataFrame] = []
+        for day in self.hall_space.columns:
+            daily_data: dict[str, str] = {"Start": None, "End": None}
+            for court in courts:
+                daily_data[court] = None
+            daily_data["Start"] = self.time_slots["Start"].reset_index(drop=True)
+            daily_data["End"] = self.time_slots["End"].reset_index(drop=True)
+            daily_dfs.append(pd.DataFrame(daily_data))
+        print(daily_dfs[0])
+
 
 
 scheduler = Hall_Scheduler("input_files")
-print(scheduler.primordial_genome)
+schedule = scheduler.genome_to_schedule(scheduler.primordial_genome)
