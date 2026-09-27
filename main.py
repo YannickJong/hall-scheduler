@@ -84,20 +84,29 @@ class Hall_Scheduler:
         available_courts = self.hall_space.max().max()
         courts = [f"Court {court + 1}" for court in range(available_courts)]
         df_day: pd.DataFrame = self.time_slots.merge(
-                        self.hall_space,
-                        left_on=self.time_slots.index,
-                        right_on=self.hall_space.index,
-                    )
+            self.hall_space,
+            left_on=self.time_slots.index,
+            right_on=self.hall_space.index,
+        )
         daily_dfs: list[pd.DataFrame] = []
+        flat_hall_space = self.hall_space.transpose().to_numpy().flatten()
+        print(sum(flat_hall_space) == len(genome))
+        current: int = 0
         for day in self.hall_space.columns:
-            daily_data: dict[str, str] = {"Start": None, "End": None}
+            daily_data: dict[str, object] = {"Start": None, "End": None}
             for court in courts:
                 daily_data[court] = None
             daily_data["Start"] = self.time_slots["Start"].reset_index(drop=True)
             daily_data["End"] = self.time_slots["End"].reset_index(drop=True)
+            for slot in flat_hall_space:
+                for court in courts[:slot]:
+                    daily_data[court] = genome[current : current + 1]
+                    current += 1
+                    print(daily_data[court])
             daily_dfs.append(pd.DataFrame(daily_data))
-        print(daily_dfs[0])
+            current = 0
 
+        print(daily_dfs[0])
 
 
 scheduler = Hall_Scheduler("input_files")
