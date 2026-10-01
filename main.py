@@ -1,4 +1,7 @@
 # import numpy as np
+from functools import reduce
+
+import numpy as np
 import pandas as pd
 
 from constants import TEAM_MAP
@@ -81,33 +84,20 @@ class Hall_Scheduler:
         return primordial_genome
 
     def genome_to_schedule(self, genome: str):
-        available_courts = self.hall_space.max().max()
-        courts = [f"Court {court + 1}" for court in range(available_courts)]
-        df_day: pd.DataFrame = self.time_slots.merge(
-            self.hall_space,
-            left_on=self.time_slots.index,
-            right_on=self.hall_space.index,
-        )
-        daily_dfs: list[pd.DataFrame] = []
+        # Normal shape
+        hall_space_shape = self.hall_space.to_numpy().shape
         flat_hall_space = self.hall_space.transpose().to_numpy().flatten()
-        print(sum(flat_hall_space) == len(genome))
-        current: int = 0
-        for day in self.hall_space.columns:
-            daily_data: dict[str, object] = {"Start": None, "End": None}
-            for court in courts:
-                daily_data[court] = None
-            daily_data["Start"] = self.time_slots["Start"].reset_index(drop=True)
-            daily_data["End"] = self.time_slots["End"].reset_index(drop=True)
-            for slot in flat_hall_space:
-                for court in courts[:slot]:
-                    daily_data[court] = genome[current : current + 1]
-                    current += 1
-                    print(daily_data[court])
-            daily_dfs.append(pd.DataFrame(daily_data))
-            current = 0
+        cum_hall_space = np.zeros(len(flat_hall_space)+1, dtype=int)
+        cum_hall_space[1:] = np.cumsum(flat_hall_space)
+        g_vec = np.empty(len(cum_hall_space) + 1, dtype=object)
+        for i in range(1, len(cum_hall_space)):
+            a, b = cum_hall_space[i-1], cum_hall_space[i]
+            g_vec[i-1] = genome[a:b]
 
-        print(daily_dfs[0])
-
+        # Transposed shape
+        sched_T = g_vec.reshape(hall_space_shape[1], hall_space_shape[0])
+        sched = sched_T.transpose()
+        print(sched)
 
 scheduler = Hall_Scheduler("input_files")
 schedule = scheduler.genome_to_schedule(scheduler.primordial_genome)
