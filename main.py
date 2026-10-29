@@ -92,12 +92,14 @@ class Hall_Scheduler:
         g_vec = np.empty(len(cum_hall_space) + 1, dtype=object)
         for i in range(1, len(cum_hall_space)):
             a, b = cum_hall_space[i-1], cum_hall_space[i]
-            g_vec[i-1] = genome[a:b]
+            slot_teams = ", ".join(list(TEAM_MAP.keys())[list(TEAM_MAP.values()).index(dna.upper())] for dna in genome[a:b])
+            g_vec[i-1] = slot_teams
 
         # Transposed shape
-        sched_T = g_vec.reshape(hall_space_shape[1], hall_space_shape[0])
+        print(g_vec)
+        sched_T = g_vec[:-2].reshape(hall_space_shape[1], hall_space_shape[0])
         sched = sched_T.transpose()
         print(sched)
 
 scheduler = Hall_Scheduler("input_files")
-schedule = scheduler.genome_to_schedule(scheduler.primordial_genome)
+schedule = scheduler.genome_to_schedule("MNOLIPkWXBCGQSDaTHjEUVFRKLMZBAjz")
